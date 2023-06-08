@@ -1,0 +1,37 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: An AWS template for lex bot landler
+
+Parameters:
+  KendraIndexId:
+    Type: String
+    Description: Kendra Index
+    MinLength: 1
+  SageMakerEndpoint:
+    Type: String
+    Description: SageMaker Endpoint
+    MinLength: 1
+
+Resources:
+  LexBotHandler:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: app_lambda.lambda_handler
+      Runtime: python3.9
+      CodeUri: kendra_lex_caller/
+      Description: Handle Lex bot interactions
+      MemorySize: 128
+      Timeout: 120
+      Environment:
+        Variables:
+          KENDRA_INDEX_ID: !Ref KendraIndexId
+          SAGEMAKER_ENDPOINT: !Ref SageMakerEndpoint
+      Policies: 
+        - AmazonKendraFullAccess
+        - AmazonSageMakerFullAccess
+
+Outputs:
+  LexBotHandler:
+    Description: "lex bot handler lambda function ARN"
+    Value: !GetAtt LexBotHandler.Arn
+
