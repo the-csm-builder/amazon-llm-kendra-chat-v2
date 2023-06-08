@@ -1,7 +1,8 @@
  ## Kendra Search Bot ##
 
 The Kendra Search Bot is a solution that integrates Amazon Kendra, Amazon Lex, AWS Lambda, and Amazon SageMaker to create a smart, conversational bot. The bot is designed to provide detailed answers based on user queries by leveraging the powerful search capabilities of Amazon Kendra and the natural language processing capabilities of Lex and SageMaker.
-Overview
+
+### Overview ###
 
 This bot receives a user query, searches a Kendra index for relevant documents, then uses a Language Model to generate a detailed response to the query based on the documents found. This solution is designed to offer a conversational and context-aware search experience.
 
@@ -19,5 +20,5 @@ This bot receives a user query, searches a Kendra index for relevant documents, 
 
 You can deploy the bot with the provided template.yaml file which outlines the resources needed for the solution, and the app_lambda.py file which contains the bot's logic. Setup and deployment is handled with AWS SAM. The Kendra index ID and SageMaker endpoint are configurable via the SAM template parameters.
 
-## Limitions ##
+## Limitations ##
 Flan XXL is terse with responses, and good for QnA scenarios, but not generation scenarios. Context awareness and conversation history are Work in progress, and not fully deployed. 
