@@ -18,7 +18,7 @@ This bot receives a user query, searches a Kendra index for relevant documents, 
 
 ## Setup ##
 
-Deploy the code with docker, ECR, and lambda image. I setup the lambda manually for testing purposes. The lambda setup can be automated with AWS sam, cloud formation or the AWS cli. 
+Deploy the code with docker, ECR, and lambda image. I setup the lambda manually for testing purposes. The lambda setup can be automated with AWS sam, cloud formation or the AWS cli.  Setup lex, one intent, no need to setup a slot. Point the lex bot to the lambda function, build, and test.
 
 ## Limitations ##
 Flan XXL is terse with responses, and good for QnA scenarios, but not generation scenarios. Context awareness and conversation history are Work in progress, and not fully deployed. 
