@@ -13,6 +13,15 @@ Parameters:
     MinLength: 1
 
 Resources:
+  LangChainLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: LangChainLayer
+      Description: Layer for LangChain
+      ContentUri: langchain-lambda/
+      CompatibleRuntimes:
+        - python3.9
+        - python3.10
   LexBotHandler:
     Type: AWS::Serverless::Function
     Properties:
@@ -29,6 +38,8 @@ Resources:
       Policies: 
         - AmazonKendraFullAccess
         - AmazonSageMakerFullAccess
+      Layers:
+        - !Ref LangChainLayer
 
 Outputs:
   LexBotHandler:

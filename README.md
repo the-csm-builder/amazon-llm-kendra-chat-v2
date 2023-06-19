@@ -18,7 +18,7 @@ This bot receives a user query, searches a Kendra index for relevant documents, 
 
 ## Setup ##
 
-You can deploy the bot with the provided template.yaml file which outlines the resources needed for the solution, and the app_lambda.py file which contains the bot's logic. Setup and deployment is handled with AWS SAM. The Kendra index ID and SageMaker endpoint are configurable via the SAM template parameters.
+You can deploy the code using docker, ECR, and lambda image. I setup the lambda manually for testing purposes. You can automate the deployment with sam, cloud formation or the cli. 
 
 ## Limitations ##
 Flan XXL is terse with responses, and good for QnA scenarios, but not generation scenarios. Context awareness and conversation history are Work in progress, and not fully deployed. 
