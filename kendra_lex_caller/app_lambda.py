@@ -22,21 +22,12 @@ class ContentHandler(LLMContentHandler):
 
 content_handler = ContentHandler()
 
-# prompt_template = """Use the following pieces of context to answer the question at the end.
+prompt_template = """Use the following pieces of context to answer the question at the end.
 
-# {context}
-
-# Question: {question}
-# Answer:"""
-
-prompt_template = """
-The following is a friendly conversation between a human and an AI. 
-The AI is talkative and provides lots of specific details from its context.
-If the AI does not know the answer to a question, it truthfully says it 
-does not know.
 {context}
-Instruction: Based on the above documents, provide a detailed answer for, {question} Answer "don't know" if not present in the document. Solution:
-"""
+
+Question: {question}
+Answer:"""
 
 PROMPT = PromptTemplate(
     template=prompt_template, input_variables=["context", "question"]
@@ -44,9 +35,9 @@ PROMPT = PromptTemplate(
 
 chain = load_qa_chain(
     llm=SagemakerEndpoint(
-        endpoint_name="ENTER SAGEMAKER",
+        endpoint_name="jumpstart-dft-hf-text2text-flan-t5-xxl-jk-demo",
         region_name="us-east-1",
-        model_kwargs={"temperature":1e-10, "max_length":500},
+        model_kwargs={"temperature":1e-10},
         content_handler=content_handler
     ),
     prompt=PROMPT
@@ -100,7 +91,7 @@ def lambda_handler(event, context):
 
     # Query Kendra with the user input
     kendra_response = kendra_client.query(
-        IndexId='ENTER KENDRA IDEX ID',
+        IndexId='ac98935e-1f49-4083-8ad3-108fe1e451bd',
         QueryText=user_input
     )
 
@@ -112,11 +103,15 @@ def lambda_handler(event, context):
     doc = Document(page_content=document_text, metadata={"source": document_source})
 
     # Generate context from the conversation history
-    # history = get_history()
-    # history_text =''.join([f"Question: {item['question']}\nAnswer: {item['answer']}\n\n" for item in history])
+    history = get_history()
+    history_text =''.join([f"Question: {item['question']}\nAnswer: {item['answer']}\n\n" for item in history])
+    # print output for debugging
+    print(history_text)
 
     # Run the QA chain
-    output = chain({"input_documents": [doc], "question": user_input}, return_only_outputs=True)
+    output = chain({"input_documents": [doc], "question": user_input, "context": history_text}, return_only_outputs=True)
+    # print output for debugging
+    print(output)
 
     # Add the question and answer to the conversation_history ddb table
     add_to_history(user_input, output["output_text"])

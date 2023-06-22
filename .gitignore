@@ -3,3 +3,4 @@ samconfig.toml
 kendra_lex_caller/.DS_Store
 .DS_Store
 template.yaml
+kendra_lex_caller/app_lambda_og.py
