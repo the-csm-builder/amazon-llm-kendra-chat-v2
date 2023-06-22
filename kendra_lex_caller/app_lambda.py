@@ -5,6 +5,7 @@ from langchain.chains.question_answering import load_qa_chain
 import json
 import boto3
 from datetime import datetime
+import os # added 6/22 to eliminate hard coded values
 
 class ContentHandler(LLMContentHandler):
     content_type = "application/json"
@@ -22,22 +23,35 @@ class ContentHandler(LLMContentHandler):
 
 content_handler = ContentHandler()
 
-prompt_template = """Use the following pieces of context to answer the question at the end.
+# prompt_template = """Use the following pieces of context to answer the question at the end.
 
+# {context}
+
+# Question: {question}
+# Answer:"""
+
+prompt_template = """
+The following is a friendly conversation between a human and an AI. 
+The AI is talkative and provides lots of specific details from its context.
+If the AI does not know the answer to a question, it truthfully says it 
+does not know.
 {context}
-
-Question: {question}
-Answer:"""
+Instruction: Based on the above documents, provide a detailed answer for, {question} Answer "don't know" if not present in the document. Solution:
+"""
 
 PROMPT = PromptTemplate(
     template=prompt_template, input_variables=["context", "question"]
 )
 
+# retrieve the endpoint name and region from the environment variables
+endpoint_name = os.environ['SAGEMAKER_ENDPOINT_NAME']
+region_name = os.environ['AWS_REGION_NAME']
+
 chain = load_qa_chain(
     llm=SagemakerEndpoint(
-        endpoint_name="jumpstart-dft-hf-text2text-flan-t5-xxl-jk-demo",
-        region_name="us-east-1",
-        model_kwargs={"temperature":1e-10},
+        endpoint_name=endpoint_name,
+        region_name=region_name,
+        model_kwargs={"temperature":1e-10, "max_length":500},
         content_handler=content_handler
     ),
     prompt=PROMPT
@@ -89,9 +103,12 @@ def lambda_handler(event, context):
     # Get the current session attributes
     session_attributes = event['sessionAttributes'] if 'sessionAttributes' in event else {}
 
+    # retrieve the kendra index id from environment variables
+    kendra_index_id = os.environ['KENDRA_INDEX_ID']
+
     # Query Kendra with the user input
     kendra_response = kendra_client.query(
-        IndexId='ac98935e-1f49-4083-8ad3-108fe1e451bd',
+        IndexId=kendra_index_id,
         QueryText=user_input
     )
 
@@ -103,15 +120,11 @@ def lambda_handler(event, context):
     doc = Document(page_content=document_text, metadata={"source": document_source})
 
     # Generate context from the conversation history
-    history = get_history()
-    history_text =''.join([f"Question: {item['question']}\nAnswer: {item['answer']}\n\n" for item in history])
-    # print output for debugging
-    print(history_text)
+    # history = get_history()
+    # history_text =''.join([f"Question: {item['question']}\nAnswer: {item['answer']}\n\n" for item in history])
 
     # Run the QA chain
-    output = chain({"input_documents": [doc], "question": user_input, "context": history_text}, return_only_outputs=True)
-    # print output for debugging
-    print(output)
+    output = chain({"input_documents": [doc], "question": user_input}, return_only_outputs=True)
 
     # Add the question and answer to the conversation_history ddb table
     add_to_history(user_input, output["output_text"])
@@ -122,7 +135,9 @@ def lambda_handler(event, context):
     message = {
     'contentType': 'PlainText',
     #'content': f"{output}\n\nSource: {document_source}"
-    'content': f"{output_text}.\n\n You can find more information at this URL: {document_source}"
+    # add content, and a sentence for the document source
+    #'content': f"{output_text}. /n/n For more details click on this URL {document_source}"
+    'content': f"{output_text}."
     }
     fullfillment_state = 'Fulfilled'
 
